@@ -159,7 +159,7 @@ npm install
 npm run dev
 
 # Open in browser
-open http://localhost:5173
+open https://amrutamapp.vercel.app/
 <br/> <img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif"/> <h3>✨ "Built with modern web technologies for optimal performance and developer experience" ✨</h3> <img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif"/> </div><hr/><div align="center"> <h2>🌟 Show Your Support 🌟</h2> <p>If you find this project helpful, give it a ⭐️!</p> <br/>
 Happy Coding! 🚀
 
