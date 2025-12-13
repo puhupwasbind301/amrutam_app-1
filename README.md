@@ -24,7 +24,7 @@ npm install
 
 # Start development server
 npm run dev
-🎯 Development server starts at: http://localhost:5173
+🎯 Development server starts at: https://amrutamapp.vercel.app/
 
 </div><hr/><h2 align="center">🛠️ Technologies Used 🛠️</h2><div align="center">
 Technology	Purpose	Version	Documentation
