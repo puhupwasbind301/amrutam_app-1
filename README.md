@@ -53,7 +53,46 @@ bash
 ├── 📜 tsconfig.json       # TypeScript configuration
 ├── 📜 tailwind.config.js  # Tailwind configuration
 └── 📜 vite.config.ts      # Vite configuration
-</div><hr/><h2 align="center">🎨 Styling Stack 🎨</h2><div align="center">
+<details> <summary><b>📂 Detailed Structure</b></summary>
+text
+📦 project-name/
+├── 📂 public/              
+│   ├── 📄 favicon.ico        # Site favicon
+│   ├── 📄 robots.txt         # Search engine directives
+│   └── 📂 assets/           # Static images, fonts, etc.
+│
+├── 📂 src/
+│   ├── 📂 components/       # React components
+│   │   ├── 📂 ui/          # Reusable UI components
+│   │   ├── 📂 layout/      # Layout components
+│   │   └── 📄 index.ts     # Component exports
+│   │
+│   ├── 📂 lib/             # Utilities and configs
+│   │   ├── 📄 utils.ts     # Helper functions
+│   │   ├── 📄 constants.ts # App constants
+│   │   └── 📄 config.ts    # Configuration files
+│   │
+│   ├── 📂 styles/          # Global styles
+│   │   ├── 📄 globals.css  # Global CSS
+│   │   └── 📄 themes.css   # Theme definitions
+│   │
+│   ├── 📂 types/           # TypeScript types
+│   │   ├── 📄 index.ts     # Type exports
+│   │   └── 📄 *.d.ts       # Type declarations
+│   │
+│   ├── 📄 App.tsx          # Main App component
+│   ├── 📄 main.tsx         # Application entry point
+│   └── 📄 vite-env.d.ts    # Vite type declarations
+│
+├── 📜 index.html           # HTML template
+├── 📜 package.json         # Dependencies and scripts
+├── 📜 tsconfig.json        # TypeScript configuration
+├── 📜 tailwind.config.js   # Tailwind configuration
+├── 📜 vite.config.ts       # Vite configuration
+├── 📜 .eslintrc.json       # ESLint configuration
+├── 📜 .prettierrc          # Prettier configuration
+└── 📜 README.md           # This file
+</details></div><hr/><h2 align="center">🎨 Styling Stack 🎨</h2><div align="center">
 This project uses a modern styling stack:
 
 <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin: 2rem 0;"> <a href="https://tailwindcss.com/"> <img src="https://img.shields.io/badge/Tailwind_CSS-Utility--first_CSS_framework-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white" /> </a> <a href="https://ui.shadcn.com/"> <img src="https://img.shields.io/badge/shadcn/ui-Beautifully_designed_components-000000?style=for-the-badge&logo=react&logoColor=white" /> </a> <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Animations"> <img src="https://img.shields.io/badge/CSS_Animations-Smooth_transitions_and_effects-1572B6?style=for-the-badge&logo=css3&logoColor=white" /> </a> <a href="https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Responsive_Design"> <img src="https://img.shields.io/badge/Responsive_Design-Mobile--first_approach-61DAFB?style=for-the-badge&logo=responsive&logoColor=white" /> </a> </div>
