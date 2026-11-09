@@ -2,12 +2,18 @@ import { useParams, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { Button } from "@/components/ui/button";
+import NotFound from "@/pages/NotFound";
 import { ingredients, products } from "@/data/products";
 import { ArrowLeft, Check, Plus, ChevronDown } from "lucide-react";
 
 const IngredientDetail = () => {
   const { id } = useParams();
-  const ingredient = ingredients.find(i => i.id === id) || ingredients[0];
+  const ingredient = ingredients.find(i => i.id === id);
+
+  if (!ingredient) {
+    return <NotFound />;
+  }
+
   const relatedProducts = products.filter(p => ingredient.products.includes(p.id));
 
   const benefits = [
