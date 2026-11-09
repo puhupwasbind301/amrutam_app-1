@@ -1,6 +1,11 @@
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 
-export const ShopHero = () => {
+interface ShopHeroProps {
+  search: string;
+  onSearchChange: (value: string) => void;
+}
+
+export const ShopHero = ({ search, onSearchChange }: ShopHeroProps) => {
   return (
     <div className="relative bg-gradient-to-b from-sage/40 to-background overflow-hidden">
       {/* Decorative Leaves */}
@@ -23,17 +28,26 @@ export const ShopHero = () => {
         </h1>
         
         <div className="max-w-lg mx-auto relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <label htmlFor="product-search" className="sr-only">Search products</label>
+          <Search aria-hidden="true" className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <input 
-            type="text"
-            placeholder="Search for Kuntal Care"
+            id="product-search"
+            type="search"
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder="Search products"
             className="w-full input-ayurveda pl-12 pr-12 py-4"
           />
-          <button className="absolute right-4 top-1/2 -translate-y-1/2">
-            <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-            </svg>
-          </button>
+          {search && (
+            <button
+              type="button"
+              aria-label="Clear search"
+              onClick={() => onSearchChange("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-sage focus-visible:outline focus-visible:outline-2 focus-visible:outline-forest"
+            >
+              <X aria-hidden="true" className="w-5 h-5 text-muted-foreground" />
+            </button>
+          )}
         </div>
       </div>
     </div>
