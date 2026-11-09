@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { Star, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCart } from "@/hooks/use-cart";
+import { toast } from "sonner";
 
 interface ProductCardProps {
   id: string;
@@ -24,6 +26,16 @@ export const ProductCard = ({
   image,
   size = "200 ml",
 }: ProductCardProps) => {
+  const { addItem } = useCart();
+
+  const addToCart = () => {
+    if (addItem(id) > 0) {
+      toast.success(`${name} added to your cart`);
+    } else {
+      toast.info("You have reached the quantity limit for this product.");
+    }
+  };
+
   return (
     <div className="card-ayurveda overflow-hidden group">
       <Link to={`/product/${id}`}>
@@ -60,6 +72,8 @@ export const ProductCard = ({
           </div>
           
           <Button 
+            onClick={addToCart}
+            aria-label={`Add ${name} to cart`}
             size="icon" 
             className="bg-forest hover:bg-forest-light text-primary-foreground rounded-full w-8 h-8"
           >
