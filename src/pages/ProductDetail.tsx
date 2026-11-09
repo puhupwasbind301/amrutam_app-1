@@ -4,7 +4,7 @@ import { Layout } from "@/components/layout/Layout";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { Button } from "@/components/ui/button";
 import NotFound from "@/pages/NotFound";
-import { products, doctors } from "@/data/products";
+import { products, doctors, ingredients } from "@/data/products";
 import { Star, Minus, Plus, Heart, ChevronDown, Check } from "lucide-react";
 import { MAX_CART_QUANTITY, useCart } from "@/hooks/use-cart";
 import { toast } from "sonner";
@@ -31,12 +31,7 @@ const ProductDetail = () => {
     { label: "Reduces greying", icon: "🖤" },
   ];
 
-  const keyIngredients = [
-    { name: "Bhringraj", benefit: "For reducing greying of hair" },
-    { name: "Hibiscus", benefit: "For strengthening hair" },
-    { name: "Gokhru", benefit: "For reducing dryness" },
-    { name: "Methi", benefit: "For nourishment" },
-  ];
+  const keyIngredients = ingredients.filter(ingredient => ingredient.products.includes(product.id));
 
   return (
     <Layout>
@@ -162,11 +157,14 @@ const ProductDetail = () => {
               <h3 className="font-display text-lg mb-4 flex items-center gap-2">
                 <span className="text-forest">🌿</span> Key Ingredients
               </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Refer to the product label for the full ingredient list.
+              </p>
               <div className="grid grid-cols-2 gap-4">
-                {keyIngredients.map((item, idx) => (
+                {keyIngredients.map((item) => (
                   <Link 
-                    key={idx} 
-                    to={`/ingredient/${item.name.toLowerCase()}`}
+                    key={item.id}
+                    to={`/ingredient/${item.id}`}
                     className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-forest/30 transition-all"
                   >
                     <div className="w-10 h-10 rounded-full bg-sage flex items-center justify-center">
@@ -174,7 +172,7 @@ const ProductDetail = () => {
                     </div>
                     <div>
                       <p className="font-medium text-sm">{item.name}</p>
-                      <p className="text-xs text-muted-foreground">{item.benefit}</p>
+                      <p className="text-xs text-muted-foreground">{item.scientificName}</p>
                     </div>
                   </Link>
                 ))}
