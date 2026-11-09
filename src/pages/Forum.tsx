@@ -1,12 +1,36 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { forumPosts } from "@/data/products";
-import { Search, Heart, MessageSquare, Bookmark, MoreVertical, ChevronDown, Filter } from "lucide-react";
+import { Search, X, Heart, MessageSquare, Bookmark, MoreVertical } from "lucide-react";
 
 const Forum = () => {
   const [activeTab, setActiveTab] = useState<"questions" | "thoughts">("questions");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchQuery = searchParams.get("q") ?? "";
+  const searchTerms = searchQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
+
+  const updateSearch = (value: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (value) nextParams.set("q", value);
+    else nextParams.delete("q");
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  // The current catalog contains questions only; do not repeat them as thoughts.
+  const filteredPosts = activeTab === "questions" ? forumPosts.filter(post => {
+    const searchableText = [
+      post.question, post.description, post.author,
+      post.doctorReply?.name ?? "", post.doctorReply?.answer ?? "",
+    ].join(" ").toLowerCase();
+    return searchTerms.every(term => searchableText.includes(term));
+  }) : [];
+
+  const showAllQuestions = () => {
+    setActiveTab("questions");
+    updateSearch("");
+  };
 
   return (
     <Layout>
@@ -26,6 +50,8 @@ const Forum = () => {
           <div className="flex border-b border-border mb-6">
             <button
               onClick={() => setActiveTab("questions")}
+              aria-pressed={activeTab === "questions"}
+              aria-controls="forum-results"
               className={`px-6 py-3 font-medium transition-colors relative ${
                 activeTab === "questions" ? "text-forest" : "text-muted-foreground hover:text-foreground"
               }`}
@@ -37,6 +63,8 @@ const Forum = () => {
             </button>
             <button
               onClick={() => setActiveTab("thoughts")}
+              aria-pressed={activeTab === "thoughts"}
+              aria-controls="forum-results"
               className={`px-6 py-3 font-medium transition-colors relative ${
                 activeTab === "thoughts" ? "text-forest" : "text-muted-foreground hover:text-foreground"
               }`}
@@ -51,17 +79,27 @@ const Forum = () => {
           {/* Search and Ask */}
           <div className="flex gap-4 mb-6">
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <label htmlFor="forum-search" className="sr-only">Search discussions and answers</label>
+              <Search aria-hidden="true" className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
+                id="forum-search"
                 type="text"
-                placeholder="Hair Fall"
+                placeholder="Search discussions and answers..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full input-ayurveda pl-10 pr-10"
+                onChange={(e) => updateSearch(e.target.value)}
+                aria-controls="forum-results"
+                className="w-full input-ayurveda pl-10 pr-12"
               />
-              <button className="absolute right-3 top-1/2 -translate-y-1/2">
-                <Filter className="w-4 h-4 text-muted-foreground" />
-              </button>
+              {searchQuery.length > 0 && (
+                <button
+                  type="button"
+                  aria-label="Clear discussion search"
+                  onClick={() => updateSearch("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full text-muted-foreground hover:text-forest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest"
+                >
+                  <X aria-hidden="true" className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
 
@@ -81,8 +119,26 @@ const Forum = () => {
           </div>
 
           {/* Posts */}
-          <div className="space-y-6">
-            {forumPosts.map((post) => (
+          <p role="status" aria-live="polite" className="text-sm text-muted-foreground mb-4">
+            {filteredPosts.length} {filteredPosts.length === 1 ? "discussion" : "discussions"} found
+          </p>
+          <div id="forum-results" className="space-y-6">
+            {filteredPosts.length === 0 && (
+              <div className="text-center py-12 rounded-xl bg-sage/30">
+                <h2 className="font-display text-xl mb-2">
+                  {activeTab === "thoughts" ? "No thoughts available yet" : "No discussions found"}
+                </h2>
+                <p className="text-muted-foreground mb-6">
+                  {activeTab === "thoughts"
+                    ? "This discussion list currently contains questions. Browse them to read the available answers."
+                    : "Try a different topic, a doctor's name, or clear your search."}
+                </p>
+                <Button onClick={showAllQuestions} className="bg-forest hover:bg-forest-light text-primary-foreground">
+                  {activeTab === "thoughts" ? "Show all questions" : "Clear search"}
+                </Button>
+              </div>
+            )}
+            {filteredPosts.map((post) => (
               <div key={post.id} className="card-ayurveda p-6">
                 {/* Post Header */}
                 <div className="flex items-start justify-between mb-4">
@@ -170,11 +226,6 @@ const Forum = () => {
             ))}
           </div>
 
-          {/* Load More */}
-          <button className="w-full flex items-center justify-center gap-2 py-4 mt-8 text-foreground font-medium hover:text-forest transition-colors">
-            Load More
-            <ChevronDown className="w-5 h-5" />
-          </button>
         </div>
       </div>
     </Layout>
