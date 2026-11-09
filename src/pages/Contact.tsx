@@ -1,8 +1,47 @@
+import { useState, type FormEvent } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Mail, Phone, MapPin, Clock, Send } from "lucide-react";
 
 const Contact = () => {
+  const [draft, setDraft] = useState<{ href: string; subject: string; body: string } | null>(null);
+  const [formError, setFormError] = useState("");
+
+  const prepareDraft = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const field = (name: string) => String(data.get(name) ?? "").trim();
+    const topics: Record<string, string> = {
+      product: "Product Inquiry", order: "Order Status", consultation: "Doctor Consultation",
+      feedback: "Feedback", other: "Other",
+    };
+    const topic = Object.entries(topics).find(([value]) => value === field("subject"))?.[1];
+    const firstName = field("firstName");
+    const lastName = field("lastName");
+    const email = field("email");
+    const phone = field("phone");
+    const message = field("message");
+
+    if (!firstName || !lastName || !email || !topic || !message) {
+      setDraft(null);
+      setFormError("Please complete your name, email, topic, and message. Spaces alone do not count.");
+      return;
+    }
+
+    const body = [
+      `Name: ${firstName} ${lastName}`,
+      `Email: ${email}`,
+      ...(phone ? [`Phone: ${phone}`] : []),
+      "", message,
+    ].join("\n");
+    setFormError("");
+    setDraft({
+      href: `mailto:support@amrutam.global?subject=${encodeURIComponent(topic)}&body=${encodeURIComponent(body)}`,
+      subject: topic,
+      body,
+    });
+  };
+
   return (
     <Layout>
       {/* Hero */}
@@ -87,15 +126,25 @@ const Contact = () => {
           {/* Contact Form */}
           <div className="lg:col-span-2">
             <div className="card-ayurveda p-8">
-              <h2 className="font-display text-2xl text-foreground mb-6">Send us a Message</h2>
+              <h2 className="font-display text-2xl text-foreground mb-3">Send us a Message</h2>
+              <p className="text-sm text-muted-foreground mb-6">
+                Prepare a message for your email app, then review and send it there.
+              </p>
               
-              <form className="space-y-6">
+              <form
+                onSubmit={prepareDraft}
+                onChange={() => { setDraft(null); setFormError(""); }}
+                className="space-y-6"
+              >
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
+                    <label htmlFor="contact-first-name" className="block text-sm font-medium text-foreground mb-2">
                       First Name *
                     </label>
                     <input
+                      id="contact-first-name"
+                      name="firstName"
+                      autoComplete="given-name"
                       type="text"
                       className="w-full input-ayurveda"
                       placeholder="John"
@@ -103,10 +152,13 @@ const Contact = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
+                    <label htmlFor="contact-last-name" className="block text-sm font-medium text-foreground mb-2">
                       Last Name *
                     </label>
                     <input
+                      id="contact-last-name"
+                      name="lastName"
+                      autoComplete="family-name"
                       type="text"
                       className="w-full input-ayurveda"
                       placeholder="Doe"
@@ -117,10 +169,13 @@ const Contact = () => {
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
+                    <label htmlFor="contact-email" className="block text-sm font-medium text-foreground mb-2">
                       Email Address *
                     </label>
                     <input
+                      id="contact-email"
+                      name="email"
+                      autoComplete="email"
                       type="email"
                       className="w-full input-ayurveda"
                       placeholder="john@example.com"
@@ -128,10 +183,13 @@ const Contact = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
+                    <label htmlFor="contact-phone" className="block text-sm font-medium text-foreground mb-2">
                       Phone Number
                     </label>
                     <input
+                      id="contact-phone"
+                      name="phone"
+                      autoComplete="tel"
                       type="tel"
                       className="w-full input-ayurveda"
                       placeholder="+91 98765 43210"
@@ -140,10 +198,10 @@ const Contact = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
+                  <label htmlFor="contact-subject" className="block text-sm font-medium text-foreground mb-2">
                     Subject *
                   </label>
-                  <select className="w-full input-ayurveda">
+                  <select id="contact-subject" name="subject" defaultValue="" required className="w-full input-ayurveda">
                     <option value="">Select a topic</option>
                     <option value="product">Product Inquiry</option>
                     <option value="order">Order Status</option>
@@ -154,10 +212,12 @@ const Contact = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
+                  <label htmlFor="contact-message" className="block text-sm font-medium text-foreground mb-2">
                     Message *
                   </label>
                   <textarea
+                    id="contact-message"
+                    name="message"
                     rows={5}
                     className="w-full input-ayurveda resize-none"
                     placeholder="How can we help you?"
@@ -165,11 +225,29 @@ const Contact = () => {
                   />
                 </div>
 
-                <Button className="bg-forest hover:bg-forest-light text-primary-foreground px-8 py-6">
+                {formError && <p role="alert" className="text-sm text-destructive">{formError}</p>}
+
+                <Button type="submit" className="bg-forest hover:bg-forest-light text-primary-foreground px-8 py-6">
                   <Send className="w-4 h-4 mr-2" />
-                  Send Message
+                  Prepare email draft
                 </Button>
               </form>
+
+              {draft && (
+                <div className="mt-8 p-6 rounded-xl bg-sage/30 space-y-4">
+                  <p role="status" className="text-sm text-foreground">
+                    Your draft is ready. Open your email app to review and send it to support@amrutam.global.
+                  </p>
+                  <Button asChild className="bg-forest hover:bg-forest-light text-primary-foreground">
+                    <a href={draft.href}>Open email draft</a>
+                  </Button>
+                  <label htmlFor="contact-draft" className="block text-sm font-medium">
+                    Or copy this message into your email app
+                  </label>
+                  <p className="text-sm text-muted-foreground">Subject: {draft.subject}</p>
+                  <textarea id="contact-draft" value={draft.body} readOnly rows={8} className="w-full input-ayurveda" />
+                </div>
+              )}
             </div>
           </div>
         </div>
