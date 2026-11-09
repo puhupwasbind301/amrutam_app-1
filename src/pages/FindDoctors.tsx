@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { doctors } from "@/data/products";
-import { Search, Star, Clock, Video, Filter, ChevronDown } from "lucide-react";
+import { Search, Star, Clock, Video, Filter } from "lucide-react";
 
 const specialties = [
   "All Specialties",
@@ -13,9 +13,54 @@ const specialties = [
   "Digestive Health",
 ];
 
+const experienceRanges = [
+  { id: "0-4", label: "0-4 years", min: 0, max: 5 },
+  { id: "5-9", label: "5-9 years", min: 5, max: 10 },
+  { id: "10-plus", label: "10+ years", min: 10, max: Infinity },
+];
+
+const sortOptions = [
+  { id: "recommended", label: "Recommended" },
+  { id: "experience", label: "Experience: most first" },
+  { id: "fee-asc", label: "Fee: low to high" },
+  { id: "fee-desc", label: "Fee: high to low" },
+];
+
 const FindDoctors = () => {
-  const [selectedSpecialty, setSelectedSpecialty] = useState("All Specialties");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedSpecialty = specialties.find(specialty => specialty === searchParams.get("specialty")) ?? "All Specialties";
+  const searchQuery = searchParams.get("q") ?? "";
+  const selectedExperience = (searchParams.get("experience") ?? "").split(",").filter(id => experienceRanges.some(range => range.id === id));
+  const sortBy = sortOptions.find(option => option.id === searchParams.get("sort"))?.id ?? "recommended";
+  const searchTerms = searchQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
+
+  const updateFilter = (key: string, value: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (value && value !== "All Specialties" && value !== "recommended") {
+      nextParams.set(key, value);
+    } else {
+      nextParams.delete(key);
+    }
+    setSearchParams(nextParams, { replace: key === "q" });
+  };
+
+  const clearFilters = () => {
+    const nextParams = new URLSearchParams(searchParams);
+    ["q", "specialty", "experience", "sort"].forEach(key => nextParams.delete(key));
+    setSearchParams(nextParams);
+  };
+
+  const filteredDoctors = doctors.filter(doctor => {
+    const searchableText = `${doctor.name} ${doctor.specialty} ${doctor.languages.join(" ")}`.toLowerCase();
+    return searchTerms.every(term => searchableText.includes(term))
+      && (selectedSpecialty === "All Specialties" || doctor.specialty.toLowerCase().includes(selectedSpecialty.toLowerCase()))
+      && (selectedExperience.length === 0 || experienceRanges.some(range => selectedExperience.includes(range.id) && doctor.experience >= range.min && doctor.experience < range.max));
+  }).sort((a, b) => {
+    if (sortBy === "experience") return b.experience - a.experience;
+    if (sortBy === "fee-asc") return a.consultationFee - b.consultationFee;
+    if (sortBy === "fee-desc") return b.consultationFee - a.consultationFee;
+    return 0;
+  });
 
   return (
     <Layout>
@@ -34,18 +79,18 @@ const FindDoctors = () => {
           <div className="max-w-2xl mx-auto">
             <div className="flex gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <label htmlFor="doctor-search" className="sr-only">Search doctors by name, specialty, or language</label>
+                <Search aria-hidden="true" className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
-                  type="text"
+                  id="doctor-search"
+                  type="search"
                   placeholder="Search doctors by name or specialty..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => updateFilter("q", e.target.value)}
                   className="w-full input-ayurveda pl-12 py-4"
                 />
               </div>
-              <Button className="bg-forest hover:bg-forest-light text-primary-foreground px-8">
-                Search
-              </Button>
+              {searchQuery && <Button onClick={() => updateFilter("q", "")} variant="outline">Clear search</Button>}
             </div>
           </div>
         </div>
@@ -69,7 +114,8 @@ const FindDoctors = () => {
                   {specialties.map((specialty) => (
                     <button
                       key={specialty}
-                      onClick={() => setSelectedSpecialty(specialty)}
+                      onClick={() => updateFilter("specialty", specialty)}
+                      aria-pressed={selectedSpecialty === specialty}
                       className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                         selectedSpecialty === specialty
                           ? "bg-forest text-primary-foreground"
@@ -86,45 +132,50 @@ const FindDoctors = () => {
               <div className="mb-6">
                 <h4 className="text-sm font-medium mb-3">Experience</h4>
                 <div className="space-y-2">
-                  {["0-5 years", "5-10 years", "10+ years"].map((exp) => (
-                    <label key={exp} className="flex items-center gap-3 cursor-pointer">
-                      <input type="checkbox" className="w-4 h-4 accent-forest" />
-                      <span className="text-sm">{exp}</span>
+                  {experienceRanges.map((range) => (
+                    <label key={range.id} className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedExperience.includes(range.id)}
+                        onChange={(event) => updateFilter("experience", (event.target.checked
+                          ? [...selectedExperience, range.id]
+                          : selectedExperience.filter(id => id !== range.id)).join(","))}
+                        className="w-4 h-4 accent-forest"
+                      />
+                      <span className="text-sm">{range.label}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
-              {/* Availability */}
-              <div>
-                <h4 className="text-sm font-medium mb-3">Availability</h4>
-                <div className="space-y-2">
-                  {["Available Today", "Available This Week", "Video Consultation"].map((avail) => (
-                    <label key={avail} className="flex items-center gap-3 cursor-pointer">
-                      <input type="checkbox" className="w-4 h-4 accent-forest" />
-                      <span className="text-sm">{avail}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
+              <button onClick={clearFilters} className="text-sm text-forest hover:underline">Clear filters</button>
             </div>
           </aside>
 
           {/* Results */}
           <div className="flex-1">
             <div className="flex items-center justify-between mb-6">
-              <p className="text-muted-foreground">
-                Showing <span className="text-foreground font-medium">{doctors.length}</span> doctors
+              <p role="status" aria-live="polite" className="text-muted-foreground">
+                Showing <span className="text-foreground font-medium">{filteredDoctors.length}</span> {filteredDoctors.length === 1 ? "doctor" : "doctors"}
               </p>
-              <button className="flex items-center gap-2 text-sm">
-                Sort by: <span className="font-medium">Relevance</span>
-                <ChevronDown className="w-4 h-4" />
-              </button>
+              <label className="flex items-center gap-2 text-sm">
+                Sort by
+                <select value={sortBy} onChange={(event) => updateFilter("sort", event.target.value)} className="input-ayurveda">
+                  {sortOptions.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
+                </select>
+              </label>
             </div>
 
             <div className="space-y-6">
-              {[...doctors, ...doctors].map((doctor, idx) => (
-                <div key={`${doctor.id}-${idx}`} className="card-ayurveda p-6">
+              {filteredDoctors.length === 0 && (
+                <div className="card-ayurveda p-10 text-center">
+                  <h2 className="font-display text-xl mb-2">No doctors found</h2>
+                  <p className="text-muted-foreground mb-4">Try another search or clear your filters.</p>
+                  <Button onClick={clearFilters}>Clear filters</Button>
+                </div>
+              )}
+              {filteredDoctors.map((doctor) => (
+                <div key={doctor.id} className="card-ayurveda p-6">
                   <div className="flex flex-col md:flex-row gap-6">
                     {/* Doctor Image */}
                     <div className="relative flex-shrink-0">
@@ -185,11 +236,6 @@ const FindDoctors = () => {
               ))}
             </div>
 
-            {/* Load More */}
-            <button className="w-full flex items-center justify-center gap-2 py-4 mt-8 text-foreground font-medium hover:text-forest transition-colors">
-              Load More Doctors
-              <ChevronDown className="w-5 h-5" />
-            </button>
           </div>
         </div>
       </div>
