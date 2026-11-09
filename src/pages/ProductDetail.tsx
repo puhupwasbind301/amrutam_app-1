@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { Button } from "@/components/ui/button";
+import NotFound from "@/pages/NotFound";
 import { products, doctors } from "@/data/products";
 import { Star, Minus, Plus, Heart, ChevronDown, Check } from "lucide-react";
 
@@ -11,7 +12,12 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState("200 ml");
   
-  const product = products.find(p => p.id === id) || products[0];
+  const product = products.find(p => p.id === id);
+
+  if (!product) {
+    return <NotFound />;
+  }
+
   const relatedProducts = products.filter(p => p.id !== id).slice(0, 3);
 
   const highlights = [
