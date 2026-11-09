@@ -1,29 +1,11 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { products } from "@/data/products";
+import { MAX_CART_QUANTITY, useCart } from "@/hooks/use-cart";
 import { Minus, Plus, X, ShoppingBag, ArrowRight, Tag } from "lucide-react";
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([
-    { ...products[0], quantity: 2 },
-    { ...products[1], quantity: 1 },
-  ]);
-
-  const updateQuantity = (id: string, delta: number) => {
-    setCartItems(items =>
-      items.map(item =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item
-      )
-    );
-  };
-
-  const removeItem = (id: string) => {
-    setCartItems(items => items.filter(item => item.id !== id));
-  };
+  const { cartItems, itemCount, updateQuantity, removeItem } = useCart();
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = subtotal > 500 ? 0 : 50;
@@ -94,6 +76,7 @@ const Cart = () => {
                       </div>
                       <button
                         onClick={() => removeItem(item.id)}
+                        aria-label={`Remove ${item.name} from cart`}
                         className="p-1 hover:bg-secondary rounded-full transition-colors"
                       >
                         <X className="w-5 h-5 text-muted-foreground" />
@@ -104,14 +87,18 @@ const Cart = () => {
                       <div className="flex items-center border border-border rounded-lg">
                         <button
                           onClick={() => updateQuantity(item.id, -1)}
-                          className="p-2 hover:bg-secondary transition-colors"
+                          aria-label={`Decrease quantity of ${item.name}`}
+                          disabled={item.quantity === 1}
+                          className="p-2 hover:bg-secondary transition-colors disabled:opacity-50"
                         >
                           <Minus className="w-4 h-4" />
                         </button>
                         <span className="px-4 font-medium">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.id, 1)}
-                          className="p-2 hover:bg-secondary transition-colors"
+                          aria-label={`Increase quantity of ${item.name}`}
+                          disabled={item.quantity === MAX_CART_QUANTITY}
+                          className="p-2 hover:bg-secondary transition-colors disabled:opacity-50"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
@@ -150,7 +137,7 @@ const Cart = () => {
 
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal ({cartItems.length} items)</span>
+                  <span className="text-muted-foreground">Subtotal ({itemCount} {itemCount === 1 ? "item" : "items"})</span>
                   <span className="text-foreground">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
