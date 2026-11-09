@@ -10,7 +10,6 @@ import { Star, Minus, Plus, Heart, ChevronDown, Check } from "lucide-react";
 const ProductDetail = () => {
   const { id } = useParams();
   const [quantity, setQuantity] = useState(1);
-  const [selectedSize, setSelectedSize] = useState("200 ml");
   
   const product = products.find(p => p.id === id);
 
@@ -91,24 +90,12 @@ const ProductDetail = () => {
               ₹ {product.price.toFixed(2)}
             </div>
 
-            {/* Size Selection */}
+            {/* Catalog Size */}
             <div className="mb-6">
               <p className="text-sm font-medium mb-3">Size</p>
-              <div className="flex gap-3">
-                {["100 ml", "200 ml"].map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-6 py-2 rounded-lg border transition-all ${
-                      selectedSize === size 
-                        ? "border-forest bg-forest/5 text-forest" 
-                        : "border-border hover:border-forest/30"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
+              <span className="inline-block px-6 py-2 rounded-lg border border-forest bg-forest/5 text-forest">
+                {product.size}
+              </span>
             </div>
 
             {/* Quantity & Add to Cart */}
