@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Phone, ShoppingCart, Bell, User, Menu, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCart } from "@/hooks/use-cart";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -15,6 +16,7 @@ const navLinks = [
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { itemCount } = useCart();
 
   return (
     <header className="w-full">
@@ -61,11 +63,11 @@ export const Header = () => {
               <button className="p-2 hover:bg-secondary rounded-full transition-colors hidden md:block">
                 <Search className="w-5 h-5 text-foreground" />
               </button>
-              <Link to="/cart" className="p-2 hover:bg-secondary rounded-full transition-colors relative">
+              <Link to="/cart" aria-label={`Shopping cart, ${itemCount} ${itemCount === 1 ? "item" : "items"}`} className="p-2 hover:bg-secondary rounded-full transition-colors relative">
                 <ShoppingCart className="w-5 h-5 text-foreground" />
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-forest text-primary-foreground text-[10px] rounded-full flex items-center justify-center">
-                  2
-                </span>
+                {itemCount > 0 && <span aria-hidden="true" className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 bg-forest text-primary-foreground text-[10px] rounded-full flex items-center justify-center">
+                  {itemCount}
+                </span>}
               </Link>
               <button className="p-2 hover:bg-secondary rounded-full transition-colors hidden md:block relative">
                 <Bell className="w-5 h-5 text-foreground" />
