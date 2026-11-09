@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { ProductCard } from "@/components/ui/ProductCard";
@@ -6,10 +6,15 @@ import { Button } from "@/components/ui/button";
 import NotFound from "@/pages/NotFound";
 import { products, doctors } from "@/data/products";
 import { Star, Minus, Plus, Heart, ChevronDown, Check } from "lucide-react";
+import { MAX_CART_QUANTITY, useCart } from "@/hooks/use-cart";
+import { toast } from "sonner";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const [quantity, setQuantity] = useState(1);
+  const { addItem } = useCart();
+
+  useEffect(() => setQuantity(1), [id]);
   
   const product = products.find(p => p.id === id);
 
@@ -102,20 +107,34 @@ const ProductDetail = () => {
             <div className="flex items-center gap-4 mb-8">
               <div className="flex items-center border border-border rounded-lg">
                 <button 
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="p-3 hover:bg-secondary transition-colors"
+                  onClick={() => setQuantity(current => Math.max(1, current - 1))}
+                  aria-label="Decrease quantity"
+                  disabled={quantity === 1}
+                  className="p-3 hover:bg-secondary transition-colors disabled:opacity-50"
                 >
                   <Minus className="w-4 h-4" />
                 </button>
                 <span className="px-6 font-medium">{quantity}</span>
                 <button 
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="p-3 hover:bg-secondary transition-colors"
+                  onClick={() => setQuantity(current => Math.min(MAX_CART_QUANTITY, current + 1))}
+                  aria-label="Increase quantity"
+                  disabled={quantity === MAX_CART_QUANTITY}
+                  className="p-3 hover:bg-secondary transition-colors disabled:opacity-50"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
-              <Button className="flex-1 bg-forest hover:bg-forest-light text-primary-foreground py-6">
+              <Button
+                onClick={() => {
+                  const added = addItem(product.id, quantity);
+                  if (added > 0) {
+                    toast.success(`${added} ${added === 1 ? "item" : "items"} added to your cart`);
+                  } else {
+                    toast.info("You have reached the quantity limit for this product.");
+                  }
+                }}
+                className="flex-1 bg-forest hover:bg-forest-light text-primary-foreground py-6"
+              >
                 Add to cart
               </Button>
               <button className="p-3 border border-border rounded-lg hover:border-forest/30 transition-colors">
