@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { ShopHero } from "@/components/shop/ShopHero";
 import { ProductCard } from "@/components/ui/ProductCard";
@@ -15,15 +15,39 @@ const categoryIcons: Record<string, React.ReactNode> = {
 };
 
 const Shop = () => {
-  const [activeCategory, setActiveCategory] = useState("all");
-  
-  const filteredProducts = activeCategory === "all" 
-    ? products 
-    : products.filter(p => p.category === activeCategory);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get("q") ?? "";
+  const activeCategory = categories.find(cat => cat.id === searchParams.get("category"))?.id ?? "all";
+  const searchTerms = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const hasFilters = searchTerms.length > 0 || activeCategory !== "all";
+
+  const updateFilter = (key: "q" | "category", value: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (value && !(key === "category" && value === "all")) {
+      nextParams.set(key, value);
+    } else {
+      nextParams.delete(key);
+    }
+    setSearchParams(nextParams, { replace: key === "q" });
+  };
+
+  const clearFilters = () => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("q");
+    nextParams.delete("category");
+    setSearchParams(nextParams);
+  };
+
+  const filteredProducts = products.filter(product => {
+    const categoryName = categories.find(cat => cat.id === product.category)?.name ?? "";
+    const searchableText = `${product.name} ${product.description} ${categoryName}`.toLowerCase();
+    return (activeCategory === "all" || product.category === activeCategory)
+      && searchTerms.every(term => searchableText.includes(term));
+  });
 
   return (
     <Layout>
-      <ShopHero />
+      <ShopHero search={search} onSearchChange={value => updateFilter("q", value)} />
       
       {/* Categories */}
       <section className="py-8 border-b border-border">
@@ -32,7 +56,8 @@ const Shop = () => {
             {categories.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
+                onClick={() => updateFilter("category", cat.id)}
+                aria-pressed={activeCategory === cat.id}
                 className={`flex flex-col items-center gap-2 px-6 py-3 rounded-xl transition-all min-w-fit ${
                   activeCategory === cat.id 
                     ? "bg-forest text-primary-foreground" 
@@ -61,24 +86,34 @@ const Shop = () => {
             <h2 className="font-display text-2xl md:text-3xl text-foreground">
               {activeCategory === "all" ? "All Products" : categories.find(c => c.id === activeCategory)?.name + " Products"}
             </h2>
-            <span className="text-muted-foreground">{filteredProducts.length} products</span>
+            <span role="status" aria-live="polite" className="text-muted-foreground">
+              {filteredProducts.length} {filteredProducts.length === 1 ? "product" : "products"}
+            </span>
           </div>
           
+          {filteredProducts.length === 0 ? (
+            <div className="text-center py-16 rounded-xl bg-sage/30">
+              <h3 className="font-display text-xl mb-2">No products found</h3>
+              <p className="text-muted-foreground mb-6">Try another search or clear your filters.</p>
+              <button onClick={clearFilters} className="btn-primary-ayurveda">Clear filters</button>
+            </div>
+          ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {filteredProducts.map((product) => (
               <ProductCard key={product.id} {...product} />
             ))}
           </div>
+          )}
           
           {/* Summer Collection */}
-          <div className="mt-16">
+          {!hasFilters && <div className="mt-16">
             <h2 className="font-display text-2xl md:text-3xl text-foreground mb-8">Summer Collection</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {products.slice(0, 3).map((product) => (
                 <ProductCard key={`summer-${product.id}`} {...product} />
               ))}
             </div>
-          </div>
+          </div>}
         </div>
       </section>
     </Layout>
